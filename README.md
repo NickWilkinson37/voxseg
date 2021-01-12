@@ -18,13 +18,14 @@ May be imported and used within python scripts/modules:
 ```python
 from voxseg import extract_feats
 
-data = extract_feats.prep_data(data_directory) # prepares audio from Kaldi-style data directory.
+data = extract_feats.prep_data(data_directory) # prepares audio from Kaldi-style data directory
 features = extract_feats.pluralize(data) # extracts log-mel filterbank spectrogram features
-extract_feats.save(features, output_directory) # saves features to .h5 file in output directory.
+extract_feats.save(features, output_directory) # saves features to .h5 file in output directory
 ```
 Alternatively may be used through a command-line interface:
 ```bash
-python extract_feats.py data_directory output_directory # reads Kaldi-style data directory and extracts features to .h5 file in output directory
+# reads Kaldi-style data directory and extracts features to .h5 file in output directory
+python extract_feats.py data_directory output_directory
 ```
 
 ## License
