@@ -11,7 +11,7 @@ setuptools.setup(
     description="Python voice activity detection package",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    #url="https://github.com/pypa/sampleproject",
+    url="https://github.com/NickWilkinson37/voxseg",
     packages=['voxseg'],
     classifiers=[
         "Programming Language :: Python :: 3",
