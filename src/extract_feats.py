@@ -36,6 +36,10 @@ def extract(signals: Dict[str, np.ndarray], frame_length: float = 0.32, nfilt: i
     return features
 
 
+def normalize(features: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
+    pass
+
+
 def prep_data(data_dir: str) -> Dict[str, np.ndarray]:
     '''Function for extracting signal arrays given a Kaldi-style data directory.
 
