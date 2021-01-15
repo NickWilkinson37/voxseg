@@ -4,7 +4,7 @@ Voxseg is a Python library for voice activity detection (VAD), for speech/non-sp
 
 ## Installation
 
-This library is still in the early stage of development. For now source code is avaliable on [github](https://github.com/NickWilkinson37/voxseg.git).
+This library is still in the early stage of development. For now source code is avaliable on [github](https://github.com/NickWilkinson37/voxseg).
 
 ```bash
 git clone https://github.com/NickWilkinson37/voxseg.git

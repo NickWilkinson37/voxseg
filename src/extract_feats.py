@@ -60,7 +60,7 @@ def prep_data(data_dir: str) -> Dict[str, np.ndarray]:
 
     # read wavs, raise AssertionError if not 16k mono
     wavs = {}
-    for i in wav_scp:
+    for _, i in wav_scp.iterrows():
         rate, wavs[i[0]] = wavfile.read(i[1])
         assert rate == 16000 and wavs[i[0]].ndim == 1, f'{i[1]} is not formatted in 16k mono.'
 
@@ -70,12 +70,29 @@ def prep_data(data_dir: str) -> Dict[str, np.ndarray]:
         return wavs
     else:
         segs = {}
-        for i in segments:
+        for _, i in segments.iterrows():
             start = int(float(i[2]) * rate)
             end = int(float(i[3]) * rate)
             segs[i[0]] = wavs[i[1]][start:end]
         return segs
 
+
+def read_sigs(row: pd.DataFrame) -> np.ndarray:
+    '''Function for reading an audio signal from a row of a pd.DataFrame containing dataset information.
+
+    Args:
+        row: A row of a pd.DataFrame created by prep_data().
+
+    Returns:
+        A np.ndarray of the audio signal.
+    '''
+    
+    if 'utterance-id' in row:
+        rate, sig = wavfile.read(row['extended filename'])
+        return sig[int(float(row['start']) * rate): int(float(row['end']) * rate)]
+    else:
+        rate, sig = wavfile.read(row['extended filename'])
+        return sig
 
 # Handle args when run directly
 if __name__ == '__main__':

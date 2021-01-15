@@ -1,18 +1,18 @@
 # Various utility functions for sub-tasks frequently used by the voxseg module
 # Author: Nick Wilkinson 2021
-import numpy as np
+import pandas as pd
 import os
 import sys
 from typing import Iterable, TextIO, Tuple
 
-def read_data_file(path: str) -> np.ndarray:
+def read_data_file(path: str) -> pd.DataFrame:
     '''Function for reading standard Kaldi-style text data files (eg. wav.scp, utt2spk etc.)
 
     Args:
         path: The path to the data file.
 
     Returns:
-        A two dimensional np.ndarray containing the enteries in the data file.
+        A pd.DataFrame containing the enteries in the data file.
     
     Example:
         Given a file 'data/utt2spk' with the following contents:
@@ -22,17 +22,18 @@ def read_data_file(path: str) -> np.ndarray:
 
         Running the function yeilds:
         >>> print(read_data_file('data/utt2spk'))
-        [['utt0', 'spk0']
-         ['utt1', 'spk1']
-         ['utt2', 'spk2']]
+                0       1
+        0    utt0    spk0
+        1    utt1    spk1
+        2    utt2    spk2
     
     '''
 
     with open(path, 'r') as f:
-        return np.array([i.split() for i in f.readlines()])
+        return pd.DataFrame([i.split() for i in f.readlines()])
 
 
-def process_data_dir(path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     '''Function for processing Kaldi-style data directory containing wav.scp,
     segments (optional), and utt2spk (optional).
 
@@ -40,8 +41,8 @@ def process_data_dir(path: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         path: The path to the data directory.
 
     Returns:
-        A tuple of np.ndarrays in the format (wav_scp, segments, utt2spk), where
-        np.ndarrays contain data from the original files -- see docs for read_data_file().
+        A tuple of pd.DataFrame in the format (wav_scp, segments, utt2spk), where
+        pd.DataFrame contain data from the original files -- see docs for read_data_file().
         If a file is missing a null value is returned eg. a directory without utt2spk would
         return:
         (wav_scp, segments, None)
