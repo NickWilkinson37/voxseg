@@ -54,6 +54,7 @@ def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFram
     files = [f for f in os.listdir(path) if os.path.isfile(f'{path}/{f}')]
     try:
         wav_scp = read_data_file(f'{path}/wav.scp')
+        wav_scp.columns = ['recording-id', 'extended filename']
     except FileNotFoundError:
         print('ERROR: Data directory needs to contain wav.scp file to be processed.')
         raise
@@ -61,10 +62,12 @@ def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFram
         segments = None
     else:
         segments = read_data_file(f'{path}/segments')
+        segments.columns = ['utterance-id', 'recording-id', 'start', 'end']
     if 'utt2spk' not in files:
         utt2spk = None
     else:
         utt2spk = read_data_file(f'{path}/utt2spk')
+        utt2spk.columns = ['utterance-id', 'speaker-id']
     return wav_scp, segments, utt2spk
 
 
