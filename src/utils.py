@@ -31,7 +31,7 @@ def read_data_file(path: str) -> pd.DataFrame:
     '''
 
     with open(path, 'r') as f:
-        return pd.DataFrame([i.split() for i in f.readlines()]).convert_dtypes()
+        return pd.DataFrame([i.split() for i in f.readlines()], dtype=str)
 
 
 def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
