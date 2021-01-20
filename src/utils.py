@@ -5,6 +5,7 @@ import os
 import sys
 from typing import Iterable, TextIO, Tuple
 
+
 def read_data_file(path: str) -> pd.DataFrame:
     '''Function for reading standard Kaldi-style text data files (eg. wav.scp, utt2spk etc.)
 
@@ -30,7 +31,7 @@ def read_data_file(path: str) -> pd.DataFrame:
     '''
 
     with open(path, 'r') as f:
-        return pd.DataFrame([i.split() for i in f.readlines()])
+        return pd.DataFrame([i.split() for i in f.readlines()]).convert_dtypes()
 
 
 def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -63,6 +64,7 @@ def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFram
     else:
         segments = read_data_file(f'{path}/segments')
         segments.columns = ['utterance-id', 'recording-id', 'start', 'end']
+        segments[['start', 'end']] = segments[['start', 'end']].astype(float)
     if 'utt2spk' not in files:
         utt2spk = None
     else:

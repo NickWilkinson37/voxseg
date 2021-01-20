@@ -9,35 +9,6 @@ from scipy.io import wavfile
 from python_speech_features import logfbank
 
 
-def calulate_feats(row: pd.DataFrame, frame_length: float, nfilt: int, rate: int) -> np.ndarray:
-    '''Auxiliary function used by extract(). Extracts log-mel spectrograms from a row of a pd.DataFrame
-    containing dataset information created by prep_data().
-
-    Args:
-        row: A row of a pd.DataFrame created by prep_data().
-        frame_length: Length of a spectrogram feature in seconds.
-        nfilt: Number of filterbanks to use.
-        rate: Sample rate.
-
-    Returns:
-        An np.ndarray of features.
-    '''
-
-    sig = row['signal']
-    if 'utterance-id' in row:
-        id = row['utterance-id']
-    else:
-        id = row['recording-id']
-    try:
-        assert len(range(0, int(len(sig)-1 - (frame_length+0.01) * rate), int(frame_length * rate))) > 0
-        feats = []
-        for j in utils.progressbar(range(0, int(len(sig)-1 - (frame_length+0.01) * rate), int(frame_length * rate)), id):
-            feats.append(np.flipud(logfbank(sig[j:int(j + (frame_length+0.01) * rate)], rate, nfilt=nfilt).T))
-        return np.array(feats)
-    except AssertionError:
-        print(f'WARNING: {id} is too short to extract features, will be ignored.')
-
-
 def extract(data: pd.DataFrame, frame_length: float = 0.32, nfilt: int = 32, rate: int = 16000) -> pd.DataFrame:
     '''Function for extracting log-mel filterbank spectrogram features.
 
@@ -51,12 +22,18 @@ def extract(data: pd.DataFrame, frame_length: float = 0.32, nfilt: int = 32, rat
         A pd.DataFrame containing features and metadata.
     '''
     
-    data['features'] = data.apply(lambda x: calulate_feats(x, frame_length, nfilt, rate), axis=1)
+    data['features'] = data.apply(lambda x: _calculate_feats(x, frame_length, nfilt, rate), axis=1)
+    data = data.drop(['signal'], axis=1)
+    data = data.dropna()
     return data
 
 
-def normalize(features: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
-    pass
+def normalize(data: pd.DataFrame) -> pd.DataFrame:
+    mean_std = data['features'].groupby(data['recording-id']).apply(_get_mean_std)
+    data = data.merge(mean_std, on='recording-id')
+    data['normalized-features'] = data.apply(_calculate_norm, axis = 1)
+    data = data.drop(['features', 'mean', 'std'], axis=1)
+    return data
 
 
 def prep_data(data_dir: str) -> pd.DataFrame:
@@ -85,15 +62,76 @@ def prep_data(data_dir: str) -> pd.DataFrame:
     # check for segments file and process if found
     if segments is None:
         print('WARNING: Segments file not found, entire audio files will be processed.')
-        wav_scp['signal'] = wav_scp.apply(lambda x: read_sig(x), axis=1)
+        wav_scp['signal'] = wav_scp.apply(lambda x: _read_sig(x), axis=1)
         return wav_scp
     else:
         data = wav_scp.merge(segments)
-        data['signal'] = data.apply(lambda x: read_sig(x), axis=1)
+        data['signal'] = data.apply(lambda x: _read_sig(x), axis=1)
         return data
 
 
-def read_sig(row: pd.DataFrame) -> np.ndarray:
+def _calculate_feats(row: pd.DataFrame, frame_length: float, nfilt: int, rate: int) -> np.ndarray:
+    '''Auxiliary function used by extract(). Extracts log-mel spectrograms from a row of a pd.DataFrame
+    containing dataset information created by prep_data().
+
+    Args:
+        row: A row of a pd.DataFrame created by prep_data().
+        frame_length: Length of a spectrogram feature in seconds.
+        nfilt: Number of filterbanks to use.
+        rate: Sample rate.
+
+    Returns:
+        An np.ndarray of features.
+    '''
+
+    sig = row['signal']
+    if 'utterance-id' in row:
+        id = row['utterance-id']
+    else:
+        id = row['recording-id']
+    try:
+        assert len(range(0, int(len(sig)-1 - (frame_length+0.01) * rate), int(frame_length * rate))) > 0
+        feats = []
+        for j in utils.progressbar(range(0, int(len(sig)-1 - (frame_length+0.01) * rate), int(frame_length * rate)), id):
+            feats.append(np.flipud(logfbank(sig[j:int(j + (frame_length+0.01) * rate)], rate, nfilt=nfilt).T))
+        return np.array(feats)
+    except AssertionError:
+        print(f'WARNING: {id} is too short to extract features, will be ignored.')
+
+
+def _calculate_norm(row: pd.DataFrame) -> np.ndarray:
+    '''Auxiliary function used by normalize(). Calculates the normalized features from a row of
+    a pd.DataFrame containing features and mean and standard deviation information (as generated
+    by _get_mean_std()).
+
+    Args:
+        row: A row of a pd.DataFrame created by extract, with additional mean and standard deviation
+        columns created by  _get_mean_std().
+
+    Returns:
+        An np.ndarray containing normalized features.
+    '''
+
+    return np.array([(i - row['mean']) / row['std'] for i in row['features']])
+
+
+def _get_mean_std(group: pd.core.groupby) -> pd.DataFrame:
+    '''Auxiliary function used by normalize(). Calculates mean and standard deviation of a
+    group of features.
+
+    Args:
+        group: A pd.GroupBy object referencing the features of a single wavefile (could be
+        from multiple utterances).
+
+    Returns:
+        A pd.DataFrame with the mean and standard deviation of the group of features.
+    '''
+
+    return pd.DataFrame({'mean': [np.mean(np.vstack(group.to_numpy()))],
+                         'std': [np.std(np.vstack(group.to_numpy()))]})
+
+
+def _read_sig(row: pd.DataFrame) -> np.ndarray:
     '''Auxiliary function used by prep_data(). Reads an audio signal from a row of a pd.DataFrame
     containing the directory of a .wav file, and optionally start and end points within the .wav. 
 
@@ -111,7 +149,7 @@ def read_sig(row: pd.DataFrame) -> np.ndarray:
     rate, sig = wavfile.read(filename)
     assert rate == 16000 and sig.ndim == 1, f'{filename} is not formatted in 16k mono.'
     if 'utterance-id' in row:
-        return sig[int(float(row['start']) * rate): int(float(row['end']) * rate)]
+        return sig[int(row['start'] * rate): int(row['end'] * rate)]
     else:
         return sig
 
@@ -126,4 +164,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data = prep_data(args.data_dir)
     features = extract(data)
-    print(features)
+    norm = normalize(features)
+    print(norm)
