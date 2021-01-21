@@ -5,9 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 import utils
-from scipy.io import wavfile
 from python_speech_features import logfbank
-import warnings
 
 
 def extract(data: pd.DataFrame, frame_length: float = 0.32, nfilt: int = 32, rate: int = 16000) -> pd.DataFrame:
@@ -69,32 +67,12 @@ def prep_data(data_dir: str) -> pd.DataFrame:
     # check for segments file and process if found
     if segments is None:
         print('WARNING: Segments file not found, entire audio files will be processed.')
-        wav_scp['signal'] = wav_scp.apply(lambda x: _read_sig(x), axis=1)
+        wav_scp['signal'] = wav_scp.apply(lambda x: utils.read_sig(x), axis=1)
         return wav_scp
     else:
         data = wav_scp.merge(segments)
-        data['signal'] = data.apply(lambda x: _read_sig(x), axis=1)
+        data['signal'] = data.apply(lambda x: utils.read_sig(x), axis=1)
         return data
-
-
-def save(data: pd.DataFrame, out_dir: str) -> None:
-    '''Saves a pd.DataFrame to a .h5 file.
-
-    Args:
-        data: A pd.DataFrame for saving.
-        out_dir: The directory where the pd.DataFrame should be saved.
-        
-    Raises:
-        AssertionError: If data does not contain features.
-    '''
-
-    assert 'features' in data or 'normalized-features' in data, \
-            'Provided pd.DataFrame does not contain features, please extract features.'
-    if not os.path.exists(out_dir):
-        print(f'Directory {out_dir} does not exist, creating it.')
-        os.mkdir(out_dir)
-    warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
-    data.to_hdf(f'{out_dir}/feats.h5', key='data', mode='w')
 
 
 def _calculate_feats(row: pd.DataFrame, frame_length: float, nfilt: int, rate: int) -> np.ndarray:
@@ -157,29 +135,6 @@ def _get_mean_std(group: pd.core.groupby) -> pd.DataFrame:
     return pd.DataFrame({'mean': [np.mean(np.vstack(group.to_numpy()))],
                          'std': [np.std(np.vstack(group.to_numpy()))]})
 
-
-def _read_sig(row: pd.DataFrame) -> np.ndarray:
-    '''Auxiliary function used by prep_data(). Reads an audio signal from a row of a pd.DataFrame
-    containing the directory of a .wav file, and optionally start and end points within the .wav. 
-
-    Args:
-        row: A row of a pd.DataFrame created by prep_data().
-
-    Returns:
-        An np.ndarray of the audio signal.
-
-    Raises:
-        AssertionError: If a wav file is not 16k mono.
-    '''
-    
-    filename = row['extended filename']
-    rate, sig = wavfile.read(filename)
-    assert rate == 16000 and sig.ndim == 1, f'{filename} is not formatted in 16k mono.'
-    if 'utterance-id' in row:
-        return sig[int(row['start'] * rate): int(row['end'] * rate)]
-    else:
-        return sig
-
 # Handle args when run directly
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='extract_feats',
@@ -195,4 +150,7 @@ if __name__ == '__main__':
     data = prep_data(args.data_dir)
     data = extract(data)
     data = normalize(data)
-    save(data, args.out_dir)
+    if not os.path.exists(args.out_dir):
+        print(f'Directory {args.out_dir} does not exist, creating it.')
+        os.mkdir(args.out_dir)
+    utils.save(data, f'{args.out_dir}/feats.h5')

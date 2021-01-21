@@ -1,37 +1,12 @@
 # Various utility functions for sub-tasks frequently used by the voxseg module
 # Author: Nick Wilkinson 2021
 import pandas as pd
+import numpy as np
 import os
 import sys
+from scipy.io import wavfile
 from typing import Iterable, TextIO, Tuple
-
-
-def read_data_file(path: str) -> pd.DataFrame:
-    '''Function for reading standard Kaldi-style text data files (eg. wav.scp, utt2spk etc.)
-
-    Args:
-        path: The path to the data file.
-
-    Returns:
-        A pd.DataFrame containing the enteries in the data file.
-    
-    Example:
-        Given a file 'data/utt2spk' with the following contents:
-        utt0    spk0
-        utt1    spk1
-        utt1    spk2
-
-        Running the function yeilds:
-        >>> print(read_data_file('data/utt2spk'))
-                0       1
-        0    utt0    spk0
-        1    utt1    spk1
-        2    utt2    spk2
-    
-    '''
-
-    with open(path, 'r') as f:
-        return pd.DataFrame([i.split() for i in f.readlines()], dtype=str)
+import warnings
 
 
 def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -97,3 +72,66 @@ def progressbar(it: Iterable, prefix: str = "", size: int = 45, file: TextIO = s
         show(i+1)
     file.write("\n")
     file.flush()
+
+
+def read_data_file(path: str) -> pd.DataFrame:
+    '''Function for reading standard Kaldi-style text data files (eg. wav.scp, utt2spk etc.)
+
+    Args:
+        path: The path to the data file.
+
+    Returns:
+        A pd.DataFrame containing the enteries in the data file.
+    
+    Example:
+        Given a file 'data/utt2spk' with the following contents:
+        utt0    spk0
+        utt1    spk1
+        utt1    spk2
+
+        Running the function yeilds:
+        >>> print(read_data_file('data/utt2spk'))
+                0       1
+        0    utt0    spk0
+        1    utt1    spk1
+        2    utt2    spk2
+    
+    '''
+
+    with open(path, 'r') as f:
+        return pd.DataFrame([i.split() for i in f.readlines()], dtype=str)
+
+
+def read_sig(row: pd.DataFrame) -> np.ndarray:
+    '''Reads an audio signal from a row of a pd.DataFrame containing the directory of
+    a .wav file, and optionally start and end points within the .wav. 
+
+    Args:
+        row: A row of a pd.DataFrame created by prep_data().
+
+    Returns:
+        An np.ndarray of the audio signal.
+
+    Raises:
+        AssertionError: If a wav file is not 16k mono.
+    '''
+    
+    filename = row['extended filename']
+    rate, sig = wavfile.read(filename)
+    assert rate == 16000 and sig.ndim == 1, f'{filename} is not formatted in 16k mono.'
+    if 'utterance-id' in row:
+        return sig[int(row['start'] * rate): int(row['end'] * rate)]
+    else:
+        return sig
+
+
+def save(data: pd.DataFrame, out_dir: str) -> None:
+    '''Saves a pd.DataFrame to a .h5 file.
+
+    Args:
+        data: A pd.DataFrame for saving.
+        out_dir: The directory where the pd.DataFrame should be saved.
+    '''
+
+    warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+    data.to_hdf(out_dir, key='data', mode='w')
