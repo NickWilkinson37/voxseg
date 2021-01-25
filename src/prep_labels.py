@@ -7,13 +7,39 @@ import os
 import utils
 
 
-def get_labels(data: pd.DataFrame) -> pd.DataFrame:
-    data['labels'] = data.apply(lambda x: _generate_label_sequence(x), axis=1)
+def get_labels(data: pd.DataFrame, frame_length: float = 0.32, rate: int = 16000) -> pd.DataFrame:
+    '''Function for preparing training labels.
+
+    Args:
+        data: A pd.DataFrame containing datatset information and signals -- see docs for prep_data().
+        frame_length (optional): Length of a spectrogram feature in seconds. Default is 0.32.
+        rate (optional): Sample rate. Default is 16k.
+
+    Returns:
+        A pd.DataFrame containing labels and metadata.
+    '''
+
+    data['labels'] = data.apply(lambda x: _generate_label_sequence(x, frame_length, rate), axis=1)
     data = data.drop(['signal', 'label'], axis=1)
     return data
 
 
 def prep_data(path: str) -> pd.DataFrame:
+    '''Function for creating pd.DataFrame containing dataset information specified by Kaldi-style
+    data directory containing 'wav.spc', 'segments' and 'utt2spk'.
+
+    Args:
+        data_dir: The path to the data directory.
+
+    Returns:
+        A pd.DataFrame of dataset information. For example:
+
+            recording-id  extended filename        utterance-id  start  end  label       signal
+        0   rec_00        ~/Documents/test_00.wav  utt_00        10     20   speech      [-49, -43, -35...
+        1   rec_00        ~/Documents/test_00.wav  utt_01        50     60   non_speech  [-35, -23, -12...
+        2   rec_01        ~/Documents/test_01.wav  utt_02        135    163  speech      [25, 32, 54...
+    '''
+
     wav_scp, segments, utt2spk = utils.process_data_dir(path)
     assert utt2spk is not None and segments is not None, \
         'ERROR: Data directory needs to contain \'segments\' and \'utt2spk\'\
@@ -24,7 +50,18 @@ def prep_data(path: str) -> pd.DataFrame:
     return data
 
 
-def _generate_label_sequence(row: pd.DataFrame, frame_length: float = 0.32, nfilt: int = 32, rate: int = 16000) -> pd.DataFrame:
+def _generate_label_sequence(row: pd.DataFrame, frame_length: float, rate: int) -> pd.DataFrame:
+    '''Auxiliary function used by get_labels(). Generated label arrays from a row of a pd.DataFrame
+    containing dataset information created by prep_data().
+
+    Args:
+        frame_length: Length of a spectrogram feature in seconds.
+        rate: Sample rate.
+
+    Returns:
+        An np.ndarray of labels.
+    '''
+
     sig = row['signal']
     if 'utterance-id' in row:
         id = row['utterance-id']

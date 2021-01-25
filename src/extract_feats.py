@@ -45,7 +45,8 @@ def normalize(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def prep_data(data_dir: str) -> pd.DataFrame:
-    '''Function for creating pd.DataFrame containing dataset specified by Kaldi-style data directory.
+    '''Function for creating pd.DataFrame containing dataset information specified by Kaldi-style
+    data directory.
 
     Args:
         data_dir: The path to the data directory.
