@@ -102,27 +102,33 @@ def read_data_file(path: str) -> pd.DataFrame:
         return pd.DataFrame([i.split() for i in f.readlines()], dtype=str)
 
 
-def read_sig(row: pd.DataFrame) -> np.ndarray:
-    '''Reads an audio signal from a row of a pd.DataFrame containing the directory of
-    a .wav file, and optionally start and end points within the .wav. 
+def read_sigs(data: pd.DataFrame) -> pd.DataFrame:
+    '''Reads audio signals from a pd.DataFrame containing the directories of
+    .wav files, and optionally start and end points within the .wav files. 
 
     Args:
-        row: A row of a pd.DataFrame created by prep_data().
+        data: A pd.DataFrame created by prep_data().
 
     Returns:
-        An np.ndarray of the audio signal.
+        A pd.DataFrame with columns 'recording-id' and 'signal', or if segments were provided
+        'utterance-id' and 'signal'. The 'signal' column contains audio as np.ndarrays.
 
     Raises:
         AssertionError: If a wav file is not 16k mono.
     '''
-    
-    filename = row['extended filename']
-    rate, sig = wavfile.read(filename)
-    assert rate == 16000 and sig.ndim == 1, f'{filename} is not formatted in 16k mono.'
-    if 'utterance-id' in row:
-        return sig[int(row['start'] * rate): int(row['end'] * rate)]
+
+    wavs = {}
+    ret = []
+    for i, j in zip(data['recording-id'].unique(), data['extended filename'].unique()):
+        rate, wavs[i] = wavfile.read(j)
+        assert rate == 16000 and wavs[i].ndim == 1, f'{j} is not formatted in 16k mono.'
+    if 'utterance-id' in data:
+        for _, row in data.iterrows():
+            ret.append([row['utterance-id'], wavs[row['recording-id']][int(float(row['start']) * rate): int(float(row['end']) * rate)]])
     else:
-        return sig
+        for _, row in data.iterrows():
+            ret.append([row['recording-id'], wavs[row['recording-id']]])
+    return pd.DataFrame(ret, columns=['utterance-id', 'signal'])
 
 
 def save(data: pd.DataFrame, out_dir: str) -> None:

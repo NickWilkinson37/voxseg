@@ -68,11 +68,11 @@ def prep_data(data_dir: str) -> pd.DataFrame:
     # check for segments file and process if found
     if segments is None:
         print('WARNING: Segments file not found, entire audio files will be processed.')
-        wav_scp['signal'] = wav_scp.apply(lambda x: utils.read_sig(x), axis=1)
+        wav_scp = wav_scp.merge(utils.read_sigs(wav_scp))
         return wav_scp
     else:
         data = wav_scp.merge(segments)
-        data['signal'] = data.apply(lambda x: utils.read_sig(x), axis=1)
+        data = data.merge(utils.read_sigs(data))
         return data
 
 
