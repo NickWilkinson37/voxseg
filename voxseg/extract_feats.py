@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import os
-import utils
+from . import utils
 from python_speech_features import logfbank
 
 
