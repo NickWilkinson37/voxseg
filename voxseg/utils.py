@@ -1,5 +1,7 @@
 # Various utility functions for sub-tasks frequently used by the voxseg module
 # Author: Nick Wilkinson 2021
+import pickle
+pickle.HIGHEST_PROTOCOL = 4
 import pandas as pd
 import numpy as np
 import os
@@ -7,6 +9,19 @@ import sys
 from scipy.io import wavfile
 from typing import Iterable, TextIO, Tuple
 import warnings
+
+
+def load(path: str) -> pd.DataFrame:
+    '''Reads a pd.DataFrame from a .h5 file.
+
+    Args:
+        path: The filepath of the .h5 file to be read.
+
+    Returns:
+        A pd.DataFrame of the data loaded from the .h5 file
+    '''
+
+    return pd.read_hdf(path)
 
 
 def process_data_dir(path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -131,16 +146,16 @@ def read_sigs(data: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(ret, columns=['utterance-id', 'signal'])
 
 
-def save(data: pd.DataFrame, out_dir: str) -> None:
+def save(data: pd.DataFrame, path: str) -> None:
     '''Saves a pd.DataFrame to a .h5 file.
 
     Args:
         data: A pd.DataFrame for saving.
-        out_dir: The directory where the pd.DataFrame should be saved.
+        path: The filepath where the pd.DataFrame should be saved.
     '''
 
     warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
-    data.to_hdf(out_dir, key='data', mode='w')
+    data.to_hdf(path, key='data', mode='w')
 
 
 def time_distribute(data: np.ndarray, sequence_length: int, stride: int = None, z_pad: bool = True) -> np.ndarray:

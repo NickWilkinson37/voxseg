@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import os
-from . import utils
+from voxseg import utils
 
 
 def get_labels(data: pd.DataFrame, frame_length: float = 0.32, rate: int = 16000) -> pd.DataFrame:
