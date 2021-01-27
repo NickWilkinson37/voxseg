@@ -23,7 +23,7 @@ def extract(data: pd.DataFrame, frame_length: float = 0.32, nfilt: int = 32, rat
     
     data['features'] = data.apply(lambda x: _calculate_feats(x, frame_length, nfilt, rate), axis=1)
     data = data.drop(['signal'], axis=1)
-    data = data.dropna()
+    data = data.dropna().reset_index(drop=True)
     return data
 
 

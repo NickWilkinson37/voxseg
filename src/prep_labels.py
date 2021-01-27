@@ -21,6 +21,7 @@ def get_labels(data: pd.DataFrame, frame_length: float = 0.32, rate: int = 16000
 
     data['labels'] = data.apply(lambda x: _generate_label_sequence(x, frame_length, rate), axis=1)
     data = data.drop(['signal', 'label'], axis=1)
+    data = data.dropna().reset_index(drop=True)
     return data
 
 

@@ -141,3 +141,43 @@ def save(data: pd.DataFrame, out_dir: str) -> None:
 
     warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
     data.to_hdf(out_dir, key='data', mode='w')
+
+
+def time_distribute(data: np.ndarray, sequence_length: int, stride: int = None, z_pad: bool = True) -> np.ndarray:
+    '''Takes a sequence of features or labels and creates an np.ndarray of time
+    distributed sequences for input to a Keras TimeDistributed() layer.
+
+    Args:
+        data: The array to be time distributed.
+        sequence_length: The length of the output sequences in samples.
+        stride (optional): The number of samples between sequences. Defaults to sequence_length.
+        z_pad (optional): Zero padding to ensure all sequences to have the same dimensions.
+        Defaults to True.
+
+    Returns:
+        The time ditributed data sequences.
+
+    Example:
+        Given an np.ndarray of data:
+        >>> data.shape
+        (10000, 32, 32, 1)
+        >>> time_distribute(data, 10).shape
+        (1000, 10, 32, 32, 1)
+        The function yeilds 1000 training sequences, each 10 samples long.
+    '''
+
+    if stride is None:
+        stride = sequence_length
+    if stride > sequence_length:
+        print('WARNING: Stride longer than sequence length, causing missed samples. This is not recommended.')
+    td_data = []
+    for n in range(0, len(data)-sequence_length+1, stride):
+        td_data.append(data[n:n+sequence_length])
+    if z_pad:
+        if len(td_data)*stride+sequence_length != len(data)+stride:
+            z_needed = len(td_data)*stride+sequence_length - len(data)
+            z_padded = np.zeros(td_data[0].shape)
+            for i in range(sequence_length-z_needed):
+                z_padded[i] = data[-(sequence_length-z_needed)+i]
+            td_data.append(z_padded)
+    return np.array(td_data)
