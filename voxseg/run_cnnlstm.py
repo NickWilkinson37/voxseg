@@ -19,9 +19,7 @@ session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=10,inter_op
 sess = tf.compat.v1.Session(config=session_conf)
 
 
-def predict_labels(model_path, feat_dir):
-    feats = pd.read_hdf(feat_dir)
-    model = models.load_model(model_path)
+def predict_labels(model, features):
     labels = feats.drop(['normalized-features'], axis=1)
     labels['predicted-labels'] = _predict(model, feats['normalized-features'])
     return labels
@@ -50,4 +48,6 @@ if __name__ == '__main__':
                         help='a path to an output directory where the output segments will be saved')
 
     args = parser.parse_args()
-    print(predict_labels(args.model_path, args.feat_dir))
+    feats = pd.read_hdf(args.feat_dir)
+    model = models.load_model(args.model_path)
+    print(predict_labels(model, feats))

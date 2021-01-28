@@ -149,9 +149,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     data = prep_data(args.data_dir)
-    data = extract(data)
-    data = normalize(data)
+    feats = extract(data)
+    feats = normalize(feats)
     if not os.path.exists(args.out_dir):
         print(f'Directory {args.out_dir} does not exist, creating it.')
         os.mkdir(args.out_dir)
-    utils.save(data, f'{args.out_dir}/feats.h5')
+    utils.save(feats, f'{args.out_dir}/feats.h5')
