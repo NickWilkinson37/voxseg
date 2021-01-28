@@ -20,15 +20,15 @@ sess = tf.compat.v1.Session(config=session_conf)
 
 
 def predict_labels(model, features):
-    labels = feats.drop(['normalized-features'], axis=1)
-    labels['predicted-labels'] = _predict(model, feats['normalized-features'])
+    labels = features.drop(['normalized-features'], axis=1)
+    labels['predicted-labels'] = _predict(model, features['normalized-features'])
     return labels
     
 
 def _predict(model, col):
     labels = []
-    for feats in col:
-        temp = model.predict(utils.time_distribute(feats, 15)[:,:,:,:,np.newaxis])
+    for features in col:
+        temp = model.predict(utils.time_distribute(features, 15)[:,:,:,:,np.newaxis])
         labels.append(temp.reshape(-1, temp.shape[-1]))
     return pd.Series(labels)
 

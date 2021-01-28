@@ -43,7 +43,6 @@ def normalize(data: pd.DataFrame) -> pd.DataFrame:
         data = data.merge(mean_std, on='recording-id')
     else:
         data = pd.concat([data, mean_std], axis=1)
-    data = data.merge(mean_std, on='recording-id')
     data['normalized-features'] = data.apply(_calculate_norm, axis = 1)
     data = data.drop(['features', 'mean', 'std'], axis=1)
     return data
