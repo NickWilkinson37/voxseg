@@ -22,5 +22,12 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.8',
+    install_requires=[
+        'pandas', 
+        'scipy', 
+        'tables',
+        'python_speech_features',
+        'tensorflow'
+    ],
 )

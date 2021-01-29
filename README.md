@@ -15,7 +15,7 @@ Then install using pip from the directory where you downloaded the package:
 pip install ./voxseg
 ```
 
-To test the installation run
+To test the installation run:
 ```bash
 python setup.py test
 ```
