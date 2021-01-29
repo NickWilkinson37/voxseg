@@ -21,6 +21,7 @@ def extract(data: pd.DataFrame, frame_length: float = 0.32, nfilt: int = 32, rat
         A pd.DataFrame containing features and metadata.
     '''
     
+    print('--------------- Extracting features ---------------')
     data['features'] = data.apply(lambda x: _calculate_feats(x, frame_length, nfilt, rate), axis=1)
     data = data.drop(['signal'], axis=1)
     data = data.dropna().reset_index(drop=True)
@@ -39,10 +40,12 @@ def normalize(data: pd.DataFrame) -> pd.DataFrame:
 
     mean_std = data['features'].groupby(data['recording-id']).apply(_get_mean_std)
     mean_std = mean_std.reset_index()
+    mean_std = mean_std.drop(['level_1'], axis=1)
     if 'recording-id' in mean_std.columns:
         data = data.merge(mean_std, on='recording-id')
     else:
         data = pd.concat([data, mean_std], axis=1)
+    print('--------------- Normalizing features --------------')
     data['normalized-features'] = data.apply(_calculate_norm, axis = 1)
     data = data.drop(['features', 'mean', 'std'], axis=1)
     return data

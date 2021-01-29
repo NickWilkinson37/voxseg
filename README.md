@@ -17,7 +17,8 @@ pip install ./voxseg
 
 To test the installation run:
 ```bash
-python setup.py test
+cd voxseg
+python -m unittest
 ```
 You should see two DataFrames printed, one containing normalized features, and the other with model generated label predictions.
 

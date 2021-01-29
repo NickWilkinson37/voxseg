@@ -140,10 +140,11 @@ def read_sigs(data: pd.DataFrame) -> pd.DataFrame:
     if 'utterance-id' in data:
         for _, row in data.iterrows():
             ret.append([row['utterance-id'], wavs[row['recording-id']][int(float(row['start']) * rate): int(float(row['end']) * rate)]])
+        return pd.DataFrame(ret, columns=['utterance-id', 'signal'])
     else:
         for _, row in data.iterrows():
             ret.append([row['recording-id'], wavs[row['recording-id']]])
-    return pd.DataFrame(ret, columns=['utterance-id', 'signal'])
+        return pd.DataFrame(ret, columns=['recording-id', 'signal'])
 
 
 def save(data: pd.DataFrame, path: str) -> None:

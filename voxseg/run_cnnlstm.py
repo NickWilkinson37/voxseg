@@ -21,6 +21,7 @@ sess = tf.compat.v1.Session(config=session_conf)
 
 def predict_labels(model, features):
     labels = features.drop(['normalized-features'], axis=1)
+    print('------------------- Running VAD -------------------')
     labels['predicted-labels'] = _predict(model, features['normalized-features'])
     return labels
     
