@@ -10,10 +10,16 @@ To intall this package clone the repository from GitHub to a directory of your c
 ```bash
 git clone https://github.com/NickWilkinson37/voxseg.git
 ```
-Then install using pip:
+Then install using pip from the directory where you downloaded the package:
 ```bash
 pip install ./voxseg
 ```
+
+To test the installation run
+```bash
+python setup.py test
+```
+You should see two DataFrames printed, one containing normalized features, and the other with model generated label predictions.
 
 In future installation directly from the package manager will be supported.
 
