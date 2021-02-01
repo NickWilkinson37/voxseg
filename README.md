@@ -20,7 +20,7 @@ To test the installation run:
 cd voxseg
 python -m unittest
 ```
-You should see two DataFrames printed, one containing normalized features, and the other with model generated label predictions.
+You should see two DataFrames printed, one containing normalized features, and the other with model generated endpoints.
 
 In future installation directly from the package manager will be supported.
 
