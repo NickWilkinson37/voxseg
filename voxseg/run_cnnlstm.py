@@ -80,6 +80,26 @@ def to_data_dir(endpoints: pd.DataFrame, out_dir: str) -> None:
                     axis=1).to_csv(f'{out_dir}/segments', sep=' ', index=False, header=False)
 
 
+def _predict(model: tf.keras.Model, col: pd.Series) -> pd.Series:
+    '''Auxiliary function used by predict_targets(). Applies a pretrained model to 
+    each feature set in the 'normalized-features' or 'features' column of a pd.DataFrame
+    containing features and metadata.
+
+    Args:
+        model: A pretrained tf.keras model.
+        col: A column of a pd.DataFrame containing features.
+
+    Returns:
+        A pd.Series containing the predicted target sequences. 
+    '''
+
+    targets = []
+    for features in col:
+        temp = model.predict(utils.time_distribute(features, 15)[:,:,:,:,np.newaxis])
+        targets.append(temp.reshape(-1, temp.shape[-1]))
+    return pd.Series(targets)
+
+
 def _targets_to_endpoints(targets: np.ndarray, frame_length: float) -> Tuple[np.ndarray, np.ndarray]:
     '''Auxilory function used by decode() for converting a target sequence to endpoints.
 
@@ -109,26 +129,6 @@ def _targets_to_endpoints(targets: np.ndarray, frame_length: float) -> Tuple[np.
     starts = np.array([i * frame_length for i in starts])
     ends = np.array([i * frame_length for i in ends])
     return starts, ends
-
-
-def _predict(model: tf.keras.Model, col: pd.Series) -> pd.Series:
-    '''Auxiliary function used by predict_targets(). Applies a pretrained model to 
-    each feature set in the 'normalized-features' or 'features' column of a pd.DataFrame
-    containing features and metadata.
-
-    Args:
-        model: A pretrained tf.keras model.
-        col: A column of a pd.DataFrame containing features.
-
-    Returns:
-        A pd.Series containing the predicted target sequences. 
-    '''
-
-    targets = []
-    for features in col:
-        temp = model.predict(utils.time_distribute(features, 15)[:,:,:,:,np.newaxis])
-        targets.append(temp.reshape(-1, temp.shape[-1]))
-    return pd.Series(targets)
 
 
 def _update_fst(state: int, transition: int) -> Tuple[int, str]:
