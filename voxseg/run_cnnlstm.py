@@ -21,9 +21,22 @@ sess = tf.compat.v1.Session(config=session_conf)
 
 
 def decode(labels: pd.DataFrame) -> pd.DataFrame:
+    '''Function for converting label sequences within a pd.DataFrame to endpoints.
+
+    Args:
+        labels: A pd.DataFrame containing predicted labels (in array form) and metadata.
+
+    Returns:
+        A pd.DataFrame containing speech segment endpoints and metadata.
+    '''
+
     temp = np.array([_labels_to_endpoints(i[:,1] < 0.5, 0.32) for i in labels['predicted-labels']], dtype=object)
-    labels['start'] = temp[:,0]
-    labels['end'] = temp[:,1]
+    if 'start' in labels.columns:
+        labels['end'] = labels['start'] + temp[:,1]
+        labels['start'] = labels['start'] + temp[:,0]
+    else:
+        labels['start'] = temp[:,0]
+        labels['end'] = temp[:,1]
     labels = labels.drop(['predicted-labels'], axis=1)
     labels = labels.apply(pd.Series.explode).reset_index(drop=True)
     labels['utterance-id'] = labels['recording-id'].astype(str) + '_' + \
@@ -50,6 +63,17 @@ def predict_labels(model: tf.keras.Model, features: pd.DataFrame) -> pd.DataFram
     
 
 def _labels_to_endpoints(labels: np.ndarray, frame_length: float) -> Tuple[np.ndarray, np.ndarray]:
+    '''Auxilory function used by decode() for converting a label sequence to endpoints.
+
+    Args:
+        labels: A binary np.ndarray of speech/nonspeech labels where 1 indicates the presence of speech.
+        frame_length: The length of each label in seconds.
+
+    Returns:
+        Two np.ndarrays, the first containing speech segment start boundaries, the second containing
+        speech segment end boundaries.
+    '''
+    
     starts = []
     ends = []
     state = 0
