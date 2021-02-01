@@ -23,8 +23,9 @@ class TestExample(unittest.TestCase):
         feats = pd.read_hdf('tests/features/feats.h5')
         model = models.load_model('tests/model/model.h5')
         labels = run_cnnlstm.predict_labels(model, feats)
-        labels = run_cnnlstm.decode(labels)
-        print(labels)
+        endpoints = run_cnnlstm.decode(labels)
+        run_cnnlstm.to_data_dir(endpoints, 'tests/output')
+        print(endpoints)
 
 
 if __name__ == '__main__':

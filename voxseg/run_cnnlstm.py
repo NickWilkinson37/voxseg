@@ -1,6 +1,7 @@
 # Script for running CNN-BiLSTM vad model
 # Author: Nick Wilkinson 2021
 import argparse
+import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -61,6 +62,23 @@ def predict_labels(model: tf.keras.Model, features: pd.DataFrame) -> pd.DataFram
     labels['predicted-labels'] = _predict(model, features['normalized-features'])
     return labels
     
+
+def to_data_dir(endpoints: pd.DataFrame, out_dir: str) -> None:
+    '''A function for generating a Kaldi-style data directory output of the dicovered speech segments.
+    
+    Args:
+        endpoints: A pd.DataFrame containing speech segment endpoints and metadata.
+        out_dir: A path to an output directory where data files will be placed.
+    '''
+
+    if not os.path.exists(out_dir):
+        print(f'Directory {out_dir} does not exist, creating it.')
+        os.mkdir(out_dir)
+    endpoints[['recording-id', 'extended filename']].drop_duplicates().to_csv(
+                    f'{out_dir}/wav.scp',sep=' ', index=False, header=False)
+    pd.concat([endpoints[['utterance-id', 'recording-id']], endpoints[['start', 'end']].astype(float).round(3)],
+                    axis=1).to_csv(f'{out_dir}/segments', sep=' ', index=False, header=False)
+
 
 def _labels_to_endpoints(labels: np.ndarray, frame_length: float) -> Tuple[np.ndarray, np.ndarray]:
     '''Auxilory function used by decode() for converting a label sequence to endpoints.
@@ -170,4 +188,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     feats = pd.read_hdf(args.feat_dir)
     model = models.load_model(args.model_path)
-    print(decode(predict_labels(model, feats)))
+    labels = predict_labels(model, feats)
+    endpoints = decode(labels)
+    to_data_dir(endpoints, args.out_dir)
