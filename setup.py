@@ -29,6 +29,7 @@ setup(
         'scipy', 
         'tables',
         'python_speech_features',
-        'tensorflow'
+        'tensorflow',
+        'tinytag',
     ],
 )

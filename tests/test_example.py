@@ -1,3 +1,5 @@
+# Tests for the voxseg package
+# Author: Nick Wilkinson 2021
 import os
 import unittest
 import logging
@@ -6,7 +8,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 import pandas as pd
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # FATAL
 from tensorflow.keras import models
-from voxseg import extract_feats, run_cnnlstm, utils
+from voxseg import evaluate, extract_feats, run_cnnlstm, utils
 
 
 class TestExample(unittest.TestCase):
@@ -26,6 +28,13 @@ class TestExample(unittest.TestCase):
         endpoints = run_cnnlstm.decode(targets)
         run_cnnlstm.to_data_dir(endpoints, 'tests/output')
         print(endpoints)
+
+    def test_evaluate(self):
+        wav_scp, wav_segs, _ = utils.process_data_dir('tests/data')
+        _, sys_segs, _ = utils.process_data_dir('tests/output')
+        _, ref_segs, _ = utils.process_data_dir('tests/ground_truth')
+        scores = evaluate.score(wav_scp, sys_segs, ref_segs, wav_segs)
+        evaluate.print_confusion_matrix(scores)
 
 
 if __name__ == '__main__':

@@ -35,6 +35,7 @@ tensorboard-plugin-wit==1.8.0
 tensorflow==2.4.1
 tensorflow-estimator==2.4.0
 termcolor==1.1.0
+tinytag==1.5.0
 typing-extensions==3.7.4.3
 urllib3==1.26.3
 Werkzeug==1.0.1

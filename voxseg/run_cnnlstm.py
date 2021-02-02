@@ -1,4 +1,5 @@
-# Script for running CNN-BiLSTM vad model
+# Module for running CNN-BiLSTM vad model,
+# may also be run directly as a script
 # Author: Nick Wilkinson 2021
 import argparse
 import os
