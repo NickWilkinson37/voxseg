@@ -33,6 +33,7 @@ def decode(targets: pd.DataFrame, thresh: float = 0.5) -> pd.DataFrame:
         A pd.DataFrame containing speech segment endpoints and metadata.
     '''
 
+    targets = targets.copy()
     temp = np.array([_targets_to_endpoints(i[:,1] < thresh, 0.32) for i in targets['predicted-targets']], dtype=object)
     if 'start' in targets.columns:
         targets['end'] = targets['start'] + temp[:,1]

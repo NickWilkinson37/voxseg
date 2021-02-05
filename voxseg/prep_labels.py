@@ -20,6 +20,7 @@ def get_labels(data: pd.DataFrame, frame_length: float = 0.32, rate: int = 16000
         A pd.DataFrame containing labels and metadata.
     '''
 
+    data = data.copy()
     print('------------ Generating training labels -----------')
     data['labels'] = data.apply(lambda x: _generate_label_sequence(x, frame_length, rate), axis=1)
     data = data.drop(['signal', 'label'], axis=1)

@@ -85,6 +85,8 @@ def _segments_to_mask(wav_scp: pd.DataFrame, segments: pd.DataFrame, frame_lengt
         [0, 0, 0, 1, 1, 1, 1, 0, 0, 0]
     '''
 
+    wav_scp = wav_scp.copy()
+    segments = segments.copy()
     wav_scp['duration'] = wav_scp['extended filename'].apply(lambda x: TinyTag.get(x).duration).astype(int)
     wav_scp['mask'] = round(wav_scp['duration'] / frame_length).astype(int).apply(np.zeros)
     segments['frames'] = (round(segments['end'] / frame_length).astype(int) - \
