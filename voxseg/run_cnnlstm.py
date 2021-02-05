@@ -22,17 +22,18 @@ session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=10,inter_op
 sess = tf.compat.v1.Session(config=session_conf)
 
 
-def decode(targets: pd.DataFrame) -> pd.DataFrame:
+def decode(targets: pd.DataFrame, thresh: float = 0.5) -> pd.DataFrame:
     '''Function for converting target sequences within a pd.DataFrame to endpoints.
 
     Args:
         targets: A pd.DataFrame containing predicted targets (in array form) and metadata.
+        thresh (optional): A threshold for the VAD decision, higher = more aggresive. (Default: 0.5)
 
     Returns:
         A pd.DataFrame containing speech segment endpoints and metadata.
     '''
 
-    temp = np.array([_targets_to_endpoints(i[:,1] < 0.5, 0.32) for i in targets['predicted-targets']], dtype=object)
+    temp = np.array([_targets_to_endpoints(i[:,1] < thresh, 0.32) for i in targets['predicted-targets']], dtype=object)
     if 'start' in targets.columns:
         targets['end'] = targets['start'] + temp[:,1]
         targets['start'] = targets['start'] + temp[:,0]
