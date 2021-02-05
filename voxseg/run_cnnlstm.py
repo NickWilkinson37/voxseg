@@ -187,7 +187,7 @@ if __name__ == '__main__':
                         help='a path to an output directory where the output segments will be saved')
 
     args = parser.parse_args()
-    feats = pd.read_hdf(args.feat_dir)
+    feats = pd.read_hdf(f'{args.feat_dir}/feats.h5')
     model = models.load_model(args.model_path)
     targets = predict_targets(model, feats)
     endpoints = decode(targets)
