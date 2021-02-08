@@ -91,9 +91,10 @@ def _segments_to_mask(wav_scp: pd.DataFrame, segments: pd.DataFrame, frame_lengt
     wav_scp['mask'] = round(wav_scp['duration'] / frame_length).astype(int).apply(np.zeros)
     segments['frames'] = (round(segments['end'] / frame_length).astype(int) - \
                           round(segments['start'] / frame_length).astype(int)).apply(np.ones)
-    temp = wav_scp.merge(segments, on='recording-id')
+    temp = wav_scp.merge(segments, how='left', on='recording-id')
     for n,_ in enumerate(temp['mask']):
-        temp['mask'][n][round(temp['start'][n] / frame_length):round(temp['end'][n] / frame_length)] = temp['frames'][n]
+        if not np.isnan(temp['start'][n]):
+            temp['mask'][n][round(temp['start'][n] / frame_length):round(temp['end'][n] / frame_length)] = temp['frames'][n]
     wav_scp['mask'] = temp['mask'].drop_duplicates().reset_index(drop=True)
     return wav_scp[['recording-id', 'mask']].set_index('recording-id')['mask'].to_dict()
 
