@@ -179,8 +179,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='run_vad',
                                      description='Run a trained voice activity detector on extracted feature set.')
 
-    parser.add_argument('model_path', type=str,
-                        help='a path to a trained vad model saved as in .h5 format')
+
+    parser.add_argument('-m', '--model_path', type=str,
+                        help='a path to a trained vad model saved as in .h5 format, overriding the default model.')
 
     parser.add_argument('feat_dir', type=str,
                         help='a path to a directory containing a feats.h5 file with extracted features')
@@ -190,7 +191,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     feats = pd.read_hdf(f'{args.feat_dir}/feats.h5')
-    model = models.load_model(args.model_path)
+    if args.model_path is not None:
+        model = models.load_model(args.model_path)
+    else:
+        model = models.load_model('voxseg/models/cnn_bilstm.h5')
     targets = predict_targets(model, feats)
     endpoints = decode(targets)
     to_data_dir(endpoints, args.out_dir)

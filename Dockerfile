@@ -1,15 +1,18 @@
-FROM python:3.8
+FROM python:3.8-slim
 
-WORKDIR /voxseg
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app/voxseg
 
 COPY requirements.txt .
-
 RUN pip install -r requirements.txt
 
-COPY ./voxseg/ ./voxseg/voxseg/
+COPY voxseg ./voxseg/
+COPY setup.py LICENSE README.md ./
 
-COPY ./setup.py ./LICENSE ./README.md ./voxseg/
+RUN pip install ./
 
-RUN pip install ./voxseg
+RUN chmod +x /app/voxseg/voxseg/main.py
 
-CMD ["python", "./voxseg/voxseg/main.py"]
+ENTRYPOINT ["python", "/app/voxseg/voxseg/main.py"]
