@@ -1,4 +1,5 @@
 import argparse
+import os
 import tensorflow as tf
 from voxseg import extract_feats, run_cnnlstm
 from tensorflow.keras import models
@@ -18,7 +19,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='VAD',
                                      description='Extracts features and run VAD to generate endpoints.')
     parser.add_argument('-m', '--model_path', type=str,
-                        help='a path to a trained vad model saved as in .h5 format, overriding the default model')
+                        help='a path to a trained vad model saved as in .h5 format, overrides default pretrained model')
     parser.add_argument('data_dir', type=str,
                         help='a path to a Kaldi-style data directory containting \'wav.scp\', and optionally \'segments\'')
     parser.add_argument('out_dir', type=str,
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     if args.model_path is not None:
         model = models.load_model(args.model_path)
     else:
-        model = models.load_model('voxseg/models/cnn_bilstm.h5')
+        model = models.load_model(f'{os.path.dirname(os.path.realpath(__file__))}/models/cnn_bilstm.h5')
     targets = run_cnnlstm.predict_targets(model, feats)
     endpoints = run_cnnlstm.decode(targets)
     run_cnnlstm.to_data_dir(endpoints, args.out_dir)

@@ -43,7 +43,7 @@ Alternatively may be used through a command-line interface:
 # reads Kaldi-style data directory and extracts features to .h5 file in output directory
 python extract_feats.py data_directory output_directory
 # runs VAD and saves output to .h5 file in ouput directory
-python run_cnnlstm.py model_path features_directory output_directory
+python run_cnnlstm.py -m model_path features_directory output_directory
 ```
 
 ## License
