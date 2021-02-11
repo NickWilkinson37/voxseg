@@ -43,7 +43,10 @@ def normalize(data: pd.DataFrame) -> pd.DataFrame:
     data = data.copy()
     mean_std = data['features'].groupby(data['recording-id']).apply(_get_mean_std)
     mean_std = mean_std.reset_index()
-    mean_std = mean_std.drop(['level_1'], axis=1)
+    if 'level_1' in mean_std.columns:
+        mean_std = mean_std.drop(['level_1'], axis=1)
+    else:
+        mean_std = mean_std.drop(['index'], axis=1)
     if 'recording-id' in mean_std.columns:
         data = data.merge(mean_std, on='recording-id')
     else:

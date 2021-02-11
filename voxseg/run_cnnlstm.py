@@ -9,6 +9,7 @@ import tensorflow as tf
 from typing import Tuple
 from tensorflow.keras import models
 from voxseg import utils
+from scipy.signal import medfilt
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
@@ -34,13 +35,23 @@ def decode(targets: pd.DataFrame, thresh: float = 0.5) -> pd.DataFrame:
     '''
 
     targets = targets.copy()
-    temp = np.array([_targets_to_endpoints(i[:,1] < thresh, 0.32) for i in targets['predicted-targets']], dtype=object)
-    if 'start' in targets.columns:
-        targets['end'] = targets['start'] + temp[:,1]
-        targets['start'] = targets['start'] + temp[:,0]
+    #temp = np.array([_targets_to_endpoints(i[:,1] < thresh, 0.32) for i in targets['predicted-targets']], dtype=object)
+    temp = np.array([_targets_to_endpoints(medfilt((i[:,0]+i[:,2]+i[:,3] > thresh).astype(int), 3), 0.32) for i in targets['predicted-targets']], dtype=object)
+    if len(targets.index) == 1:
+        pd.options.mode.chained_assignment = None
+        if 'start' in targets.columns:
+            targets['end'][0] = targets['start'][0] + temp[0,1]
+            targets['start'][0] = targets['start'][0] + temp[0,0]
+        else:
+            targets['start'][0] = temp[0,0]
+            targets['end'][0] = temp[0,1]
     else:
-        targets['start'] = temp[:,0]
-        targets['end'] = temp[:,1]
+        if 'start' in targets.columns:
+            targets['end'] = targets['start'] + temp[:,1]
+            targets['start'] = targets['start'] + temp[:,0]
+        else:
+            targets['start'] = temp[:,0]
+            targets['end'] = temp[:,1]
     targets = targets.drop(['predicted-targets'], axis=1)
     targets = targets.apply(pd.Series.explode).reset_index(drop=True)
     targets['utterance-id'] = targets['recording-id'].astype(str) + '_' + \
@@ -98,7 +109,8 @@ def _predict(model: tf.keras.Model, col: pd.Series) -> pd.Series:
 
     targets = []
     for features in col:
-        temp = model.predict(utils.time_distribute(features, 15)[:,:,:,:,np.newaxis])
+        #temp = model.predict(utils.time_distribute(features, 15)[:,:,:,:,np.newaxis])
+        temp = model.predict(features[np.newaxis,:,:,:,np.newaxis])
         targets.append(temp.reshape(-1, temp.shape[-1]))
     return pd.Series(targets)
 
@@ -178,7 +190,10 @@ def _update_fst(state: int, transition: int) -> Tuple[int, str]:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='run_vad',
                                      description='Run a trained voice activity detector on extracted feature set.')
-
+    
+    parser.add_argument('-t',
+                       '--thresh',
+                       help='a decision threshold value, defaults to 0.5 if none is provided')
 
     parser.add_argument('-m', '--model_path', type=str,
                         help='a path to a trained vad model saved as in .h5 format, overrides default pretrained model')
@@ -190,11 +205,15 @@ if __name__ == '__main__':
                         help='a path to an output directory where the output segments will be saved')
 
     args = parser.parse_args()
+    if args.thresh is not None:
+        thresh = args.thresh
+    else:
+        thresh = 0.5
     feats = pd.read_hdf(f'{args.feat_dir}/feats.h5')
     if args.model_path is not None:
         model = models.load_model(args.model_path)
     else:
         model = models.load_model(f'{os.path.dirname(os.path.realpath(__file__))}/models/cnn_bilstm.h5')
     targets = predict_targets(model, feats)
-    endpoints = decode(targets)
+    endpoints = decode(targets, thresh)
     to_data_dir(endpoints, args.out_dir)
