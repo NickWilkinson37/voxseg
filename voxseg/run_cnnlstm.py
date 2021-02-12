@@ -43,6 +43,8 @@ def decode(targets: pd.DataFrame, thresh: float = 0.5) -> pd.DataFrame:
             targets['end'][0] = targets['start'][0] + temp[0,1]
             targets['start'][0] = targets['start'][0] + temp[0,0]
         else:
+            targets['start'] = 0
+            targets['end'] = 0
             targets['start'][0] = temp[0,0]
             targets['end'][0] = temp[0,1]
     else:
