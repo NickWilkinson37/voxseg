@@ -23,20 +23,27 @@ session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=10,inter_op
 sess = tf.compat.v1.Session(config=session_conf)
 
 
-def decode(targets: pd.DataFrame, thresh: float = 0.5) -> pd.DataFrame:
+def decode(targets: pd.DataFrame, speech_thresh: float = 0.5, speech_w_music_thresh: float = 0.5) -> pd.DataFrame:
     '''Function for converting target sequences within a pd.DataFrame to endpoints.
 
     Args:
         targets: A pd.DataFrame containing predicted targets (in array form) and metadata.
-        thresh (optional): A threshold for the VAD decision, higher = more aggresive. (Default: 0.5)
+        speech_thresh (optional): A decision threshold between 0 and 1 for the speech class, lower values
+        result in more frames being classified as speech. (Default: 0.5)
+        speech_w_music_thresh (optional):  A decision threshold between 0 and 1 for the speech_with_music class.
+        Setting this threshold higher will filter out more music which may be desirable for ASR. (Default: 0.5)
 
     Returns:
         A pd.DataFrame containing speech segment endpoints and metadata.
     '''
 
     targets = targets.copy()
-    #temp = np.array([_targets_to_endpoints(i[:,1] < thresh, 0.32) for i in targets['predicted-targets']], dtype=object)
-    temp = np.array([_targets_to_endpoints(medfilt((i[:,0]+i[:,2]+i[:,3] > thresh).astype(int), 3), 0.32) for i in targets['predicted-targets']], dtype=object)
+    prior = np.array([(1-speech_thresh) * speech_w_music_thresh,
+                    speech_thresh * speech_w_music_thresh,
+                    (1-speech_thresh) * speech_w_music_thresh,
+                    (1-speech_thresh) * (1-speech_w_music_thresh)])
+    #temp = np.array([_targets_to_endpoints(medfilt((i[:,0]+i[:,2]+i[:,3] > thresh).astype(int), 3), 0.32) for i in targets['predicted-targets']], dtype=object)
+    temp = np.array([_targets_to_endpoints(medfilt([0 if (j*prior).argmax() == 1 else 1 for j in i], 3), 0.32) for i in targets['predicted-targets']], dtype=object)
     if len(targets.index) == 1:
         pd.options.mode.chained_assignment = None
         if 'start' in targets.columns:
@@ -193,11 +200,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='run_vad',
                                      description='Run a trained voice activity detector on extracted feature set.')
     
-    parser.add_argument('-t',
-                       '--thresh',
-                       help='a decision threshold value, defaults to 0.5 if none is provided')
+    parser.add_argument('-s', '--speech_thresh', type=float,
+                       help='a decision threshold value between (0,1) for speech vs non-speech, defaults to 0.5')
 
-    parser.add_argument('-m', '--model_path', type=str,
+    parser.add_argument('-m', '--speech_w_music_thresh', type=float,
+                       help='a decision threshold value between (0,1) for speech_with_music vs non-speech, defaults to 0.5, \
+                       increasing will remove more speech_with_music, useful for downsteam ASR')
+
+    parser.add_argument('-M', '--model_path', type=str,
                         help='a path to a trained vad model saved as in .h5 format, overrides default pretrained model')
 
     parser.add_argument('feat_dir', type=str,
@@ -207,15 +217,19 @@ if __name__ == '__main__':
                         help='a path to an output directory where the output segments will be saved')
 
     args = parser.parse_args()
-    if args.thresh is not None:
-        thresh = args.thresh
+    if args.speech_thresh is not None:
+        speech_thresh = args.speech_thresh
     else:
-        thresh = 0.5
+        speech_thresh = 0.5
+    if args.speech_w_music_thresh is not None:
+        speech_w_music_thresh = args.speech_w_music_thresh 
+    else:
+        speech_w_music_thresh = 0.5
     feats = pd.read_hdf(f'{args.feat_dir}/feats.h5')
     if args.model_path is not None:
         model = models.load_model(args.model_path)
     else:
         model = models.load_model(f'{os.path.dirname(os.path.realpath(__file__))}/models/cnn_bilstm.h5')
     targets = predict_targets(model, feats)
-    endpoints = decode(targets, thresh)
+    endpoints = decode(targets, speech_thresh, speech_w_music_thresh)
     to_data_dir(endpoints, args.out_dir)
