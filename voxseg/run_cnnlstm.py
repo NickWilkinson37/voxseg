@@ -44,8 +44,8 @@ def decode(targets: pd.DataFrame, speech_thresh: float = 0.5, speech_w_music_thr
                     (1-speech_thresh) * (1-speech_w_music_thresh)])
     #temp = np.array([_targets_to_endpoints(medfilt((i[:,0]+i[:,2]+i[:,3] > thresh).astype(int), 3), 0.32) for i in targets['predicted-targets']], dtype=object)
     temp = np.array([_targets_to_endpoints(medfilt([0 if (j*prior).argmax() == 1 else 1 for j in i], 3), 0.32) for i in targets['predicted-targets']], dtype=object)
+    pd.options.mode.chained_assignment = None
     if len(targets.index) == 1:
-        pd.options.mode.chained_assignment = None
         if 'start' in targets.columns:
             targets['end'][0] = targets['start'][0] + temp[0,1]
             targets['start'][0] = targets['start'][0] + temp[0,0]
@@ -59,8 +59,11 @@ def decode(targets: pd.DataFrame, speech_thresh: float = 0.5, speech_w_music_thr
             targets['end'] = targets['start'] + temp[:,1]
             targets['start'] = targets['start'] + temp[:,0]
         else:
-            targets['start'] = temp[:,0]
-            targets['end'] = temp[:,1]
+            targets['start'] = 0
+            targets['end'] = 0
+            for n,_ in enumerate(temp):
+                targets['start'][n] = temp[n,0]
+                targets['end'][n] = temp[n,1]
     targets = targets.drop(['predicted-targets'], axis=1)
     targets = targets.apply(pd.Series.explode).reset_index(drop=True)
     targets['utterance-id'] = targets['recording-id'].astype(str) + '_' + \
@@ -150,8 +153,8 @@ def _targets_to_endpoints(targets: np.ndarray, frame_length: float) -> Tuple[np.
         starts.append(n)
     elif emmision == 'end':
         ends.append(n + 1)
-    starts = np.array([i * frame_length for i in starts])
-    ends = np.array([i * frame_length for i in ends])
+    starts = np.around(np.array([i * frame_length for i in starts]), 3)
+    ends = np.around(np.array([i * frame_length for i in ends]), 3)
     return starts, ends
 
 
