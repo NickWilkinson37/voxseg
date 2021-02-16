@@ -1,7 +1,7 @@
 import argparse
 import os
 import tensorflow as tf
-from voxseg import extract_feats, run_cnnlstm
+from voxseg import extract_feats, run_cnnlstm, utils, evaluate
 from tensorflow.keras import models
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -25,6 +25,8 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--speech_w_music_thresh', type=float,
                        help='a decision threshold value between (0,1) for speech_with_music vs non-speech, defaults to 0.5, \
                        increasing will remove more speech_with_music, useful for downsteam ASR')
+    parser.add_argument('-e', '--eval_dir', type=str,
+                       help='a path to a Kaldi-style data directory containing the ground truth VAD segments for evaluation')
     parser.add_argument('data_dir', type=str,
                         help='a path to a Kaldi-style data directory containting \'wav.scp\', and optionally \'segments\'')
     parser.add_argument('out_dir', type=str,
@@ -49,3 +51,9 @@ if __name__ == '__main__':
     targets = run_cnnlstm.predict_targets(model, feats)
     endpoints = run_cnnlstm.decode(targets, speech_thresh, speech_w_music_thresh)
     run_cnnlstm.to_data_dir(endpoints, args.out_dir)
+    if args.eval_dir is not None:
+        wav_scp, wav_segs, _ = utils.process_data_dir(args.data_dir)
+        _, sys_segs, _ = utils.process_data_dir(args.out_dir)
+        _, ref_segs, _ = utils.process_data_dir(args.eval_dir)
+        scores = evaluate.score(wav_scp, sys_segs, ref_segs, wav_segs)
+        evaluate.print_confusion_matrix(scores)
