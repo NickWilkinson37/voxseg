@@ -43,7 +43,7 @@ def decode(targets: pd.DataFrame, speech_thresh: float = 0.5, speech_w_music_thr
                     (1-speech_thresh) * speech_w_music_thresh,
                     (1-speech_thresh) * (1-speech_w_music_thresh)])
     temp = pd.concat([_targets_to_endpoints(medfilt([0 if (j*prior).argmax() == 1 else 1 for j in i], 3), 0.32) \
-                     for i in test['predicted-targets']], ignore_index=True)
+                     for i in targets['predicted-targets']], ignore_index=True)
     if 'start' in targets.columns:
         targets['end'] = targets['start'] + temp['end']
         targets['start'] = targets['start'] + temp['start']
