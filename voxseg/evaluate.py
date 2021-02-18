@@ -4,7 +4,7 @@
 import argparse
 import numpy as np
 import pandas as pd
-from tinytag import TinyTag
+from scipy.io import wavfile
 from typing import Dict
 from voxseg import utils
 
@@ -87,7 +87,7 @@ def _segments_to_mask(wav_scp: pd.DataFrame, segments: pd.DataFrame, frame_lengt
 
     wav_scp = wav_scp.copy()
     segments = segments.copy()
-    wav_scp['duration'] = wav_scp['extended filename'].apply(lambda x: TinyTag.get(x).duration).astype(int)
+    wav_scp['duration'] = wav_scp['extended filename'].apply(lambda x: len(wavfile.read(x)[1])/wavfile.read(x)[0]).astype(float)
     wav_scp['mask'] = round(wav_scp['duration'] / frame_length).astype(int).apply(np.zeros)
     segments['frames'] = (round(segments['end'] / frame_length).astype(int) - \
                           round(segments['start'] / frame_length).astype(int)).apply(np.ones)
@@ -95,7 +95,10 @@ def _segments_to_mask(wav_scp: pd.DataFrame, segments: pd.DataFrame, frame_lengt
     for n,_ in enumerate(temp['mask']):
         if not np.isnan(temp['start'][n]):
             temp['mask'][n][round(temp['start'][n] / frame_length):round(temp['end'][n] / frame_length)] = temp['frames'][n]
-    wav_scp['mask'] = temp['mask'].drop_duplicates().reset_index(drop=True)
+    if len(wav_scp.index) > 1:
+        wav_scp['mask'] = temp['mask'].drop_duplicates().reset_index(drop=True)
+    else:
+        wav_scp['mask'] = temp['mask']
     return wav_scp[['recording-id', 'mask']].set_index('recording-id')['mask'].to_dict()
 
 # Handle args when run directly
@@ -117,4 +120,5 @@ if __name__ == '__main__':
     _, sys_segs, _ = utils.process_data_dir(args.vad_out_dir)
     _, ref_segs, _ = utils.process_data_dir(args.ground_truth_dir)
     scores = score(wav_scp, sys_segs, ref_segs, wav_segs)
+    print(scores)
     print_confusion_matrix(scores)

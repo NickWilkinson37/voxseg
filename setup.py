@@ -30,6 +30,5 @@ setup(
         'tables',
         'python_speech_features',
         'tensorflow',
-        'tinytag',
     ],
 )
