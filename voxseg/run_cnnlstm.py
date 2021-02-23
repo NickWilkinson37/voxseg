@@ -196,7 +196,7 @@ if __name__ == '__main__':
                        help='a decision threshold value between (0,1) for speech_with_music vs non-speech, defaults to 0.5, \
                        increasing will remove more speech_with_music, useful for downsteam ASR')
     
-    parser.add_argument('-f', '--median_filter_kernel', type=float,
+    parser.add_argument('-f', '--median_filter_kernel', type=int,
                        help='a kernel size for a median filter to smooth the output labels, defaults to 1 (no smoothing)')
 
     parser.add_argument('-M', '--model_path', type=str,
