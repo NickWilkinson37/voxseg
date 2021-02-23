@@ -62,4 +62,5 @@ if __name__ == '__main__':
         _, sys_segs, _ = utils.process_data_dir(args.out_dir)
         _, ref_segs, _ = utils.process_data_dir(args.eval_dir)
         scores = evaluate.score(wav_scp, sys_segs, ref_segs, wav_segs)
+        print(scores)
         evaluate.print_confusion_matrix(scores)
