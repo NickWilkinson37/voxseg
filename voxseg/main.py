@@ -25,6 +25,8 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--speech_w_music_thresh', type=float,
                        help='a decision threshold value between (0,1) for speech_with_music vs non-speech, defaults to 0.5, \
                        increasing will remove more speech_with_music, useful for downsteam ASR')
+    parser.add_argument('-f', '--median_filter_kernel', type=float,
+                       help='a kernel size for a median filter to smooth the output labels, defaults to 1 (no smoothing)')
     parser.add_argument('-e', '--eval_dir', type=str,
                        help='a path to a Kaldi-style data directory containing the ground truth VAD segments for evaluation')
     parser.add_argument('data_dir', type=str,
@@ -48,8 +50,12 @@ if __name__ == '__main__':
         speech_w_music_thresh = args.speech_w_music_thresh 
     else:
         speech_w_music_thresh = 0.5
+    if args.median_filter_kernel is not None:
+        filt = args.median_filter_kernel 
+    else:
+        filt = 1
     targets = run_cnnlstm.predict_targets(model, feats)
-    endpoints = run_cnnlstm.decode(targets, speech_thresh, speech_w_music_thresh)
+    endpoints = run_cnnlstm.decode(targets, speech_thresh, speech_w_music_thresh, filt)
     run_cnnlstm.to_data_dir(endpoints, args.out_dir)
     if args.eval_dir is not None:
         wav_scp, wav_segs, _ = utils.process_data_dir(args.data_dir)
