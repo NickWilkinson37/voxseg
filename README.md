@@ -47,7 +47,7 @@ This package may be used through a basic command-line interface. To run the full
 python3 voxseg/main.py data_directory output_directory
 ```
 
-To explore the avaliable flags for changing settings navigate to the voxseg directory and call:
+To explore the available flags for changing settings navigate to the voxseg directory and call:
 ```bash
 python3 voxseg/main.py -h
 ```
