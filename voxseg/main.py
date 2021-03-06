@@ -16,7 +16,7 @@ session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=10,inter_op
 sess = tf.compat.v1.Session(config=session_conf)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='VAD',
+    parser = argparse.ArgumentParser(prog='main.py',
                                      description='Extracts features and run VAD to generate endpoints.')
     parser.add_argument('-M', '--model_path', type=str,
                         help='a path to a trained vad model saved as in .h5 format, overrides default pretrained model')

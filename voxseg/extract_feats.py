@@ -151,7 +151,7 @@ def _get_mean_std(group: pd.core.groupby) -> pd.DataFrame:
 
 # Handle args when run directly
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='extract_feats',
+    parser = argparse.ArgumentParser(prog='extract_feats.py',
                                      description='Extract log-mel spectrogram features.')
 
     parser.add_argument('data_dir', type=str,

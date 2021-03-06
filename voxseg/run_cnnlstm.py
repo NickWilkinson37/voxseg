@@ -186,7 +186,7 @@ def _update_fst(state: int, transition: int) -> Tuple[int, str]:
 
 # Handle args when run directly
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='run_vad',
+    parser = argparse.ArgumentParser(prog='run_cnnlstm.py',
                                      description='Run a trained voice activity detector on extracted feature set.')
     
     parser.add_argument('-s', '--speech_thresh', type=float,

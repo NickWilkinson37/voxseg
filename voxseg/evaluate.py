@@ -103,7 +103,7 @@ def _segments_to_mask(wav_scp: pd.DataFrame, segments: pd.DataFrame, frame_lengt
 
 # Handle args when run directly
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='evaluate',
+    parser = argparse.ArgumentParser(prog='evaluate.py',
                                      description='Evaluate the performance of VAD model output.')
 
     parser.add_argument('vad_input_dir', type=str,

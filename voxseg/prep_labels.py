@@ -102,7 +102,7 @@ def _generate_label_sequence(row: pd.DataFrame, frame_length: float, rate: int) 
 
 # Handle args when run directly
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='prep_labels',
+    parser = argparse.ArgumentParser(prog='prep_labels.py',
                                      description='Prepare labels for model training.')
 
     parser.add_argument('data_dir', type=str,
