@@ -15,7 +15,7 @@ Which may be cited as follows:
 
 ## Installation
 
-To intall this package, clone the repository from GitHub to a directory of your choice and install using pip:
+To install this package, clone the repository from GitHub to a directory of your choice and install using pip:
 ```bash
 git clone https://github.com/NickWilkinson37/voxseg.git
 pip install ./voxseg
@@ -32,7 +32,7 @@ The test will run the full VAD pipeline on two example audio files. This pipelin
 - A DataFrame containing model generated endpoints, indicating the starts and ends of discovered speech utterances.
 - A confusion matrix of speech vs non-speech, with the following values: TPR 0.935, FPR 0.137, FNR 0.065, FPR 0.863
 
-*The order in which these outputs apear may vary.
+*The order in which these outputs appear may vary.
 
 ## Usage
 The package may be used in a number of ways:
