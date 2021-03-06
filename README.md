@@ -54,7 +54,7 @@ python3 voxseg/main.py -h
 The most commonly used flags are:
 * -s sets the speech vs non-speech decision threshold (accepts float between 0 and 1, default is 0.5)
 * -f: adds median filtering to smooth the output (accepts odd integer for kernal size, default is 1)
-* -e: allows a reference directory to be given, against which the VAD output is scored (accepts path to kaldi-style directory containing ground truth segments file)
+* -e: allows a reference directory to be given, against which the VAD output is scored (accepts path to Kaldi-style directory containing ground truth segments file)
 
 ### Individual scripts
 To run the smaller, individual scripts, navigate to the voxseg directory and call:
