@@ -1,8 +1,8 @@
 # Voxseg
 
-Voxseg is a Python package for voice activity detection (VAD), for speech/non-speech audio segmentation. It provides a full VAD pipeline, including a pretrained VAD model based on the following paper:
+Voxseg is a Python package for voice activity detection (VAD), for speech/non-speech audio segmentation. It provides a full VAD pipeline, including a pretrained VAD model, and it is based on work presented [here](https://arxiv.org/abs/2103.03529).
 
-Which may be cited as follows:
+Use of this VAD may be cited as follows:
 ```
 @inproceedings{cnnbilstm_vad,
     title = {A hybrid {CNN-BiLSTM} voice activity detector},
