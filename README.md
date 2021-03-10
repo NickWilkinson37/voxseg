@@ -38,8 +38,7 @@ The test will run the full VAD pipeline on two example audio files. This pipelin
 Before using the VAD, a number of files need to be created to specify the audio that one wishes to process. These files are the same as those used by the Kaldi toolkit. Extensive documentation on the data preparation process for Kaldi may be found [here](https://kaldi-asr.org/doc/data_prep.html). Only the files required by the Voxseg toolkit are described here.
 
 1. `wav.scp` - this file provides the paths to the audio files one wishes to process, and assigns them a unique recording-id. It is structured as follows:
-    `<recording-id> <extended-filename>`
-    Each entry should appear on a new line, for example:
+    `<recording-id> <extended-filename>`. Each entry should appear on a new line, for example:
     ```
     rec_000 wavs/some_raw_audio.wav
     rec_001 wavs/some_more_raw_audio.wav
@@ -48,8 +47,7 @@ Before using the VAD, a number of files need to be created to specify the audio 
     Note that the `<extended-filename>` may be an absolute path or relative path, except when using Docker or Singularity, where paths relative to the mount point must be used.
 
 2. `segments` - this file is optional and specifies segments within the audio file to be processed by the VAD (useful if one only wants to run the VAD on a subset of the full audio files). If this file is not present the full audio files will be processed. This file is structured as follows:
-    `<utterance-id> <recording-id> <segment-begin> <segment-end>`
-    where `<segment-begin>` and `<segment-end>` are in seconds. Each entry should appear on a new line, for example:
+    `<utterance-id> <recording-id> <segment-begin> <segment-end>`, where `<segment-begin>` and `<segment-end>` are in seconds. Each entry should appear on a new line, for example:
     ```
     rec_000_part_1 rec_000 20.5 142.6
     rec_000_part_2 rec_000 362.1 421.0
