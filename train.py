@@ -102,11 +102,12 @@ if __name__ == '__main__':
     checkpoint = ModelCheckpoint(filepath=f'{args.out_dir}/{args.model_name}.h5',
                                  save_weights_only=False, monitor='val_accuracy', mode='max', save_best_only=True)
 
-    if y.shape[-1] != 2 or y.shape[-1] != 4:
-        print(f'ERROR: Number of classes {y.shape[-1]} is not equal to 2 or 4, see README for more info on using this training script.')
-    else:
+    if y.shape[-1] == 2 or y.shape[-1] == 4:
         hist = train_model(cnn_bilstm(y.shape[-1]), X, y, args.validation_split, X_dev, y_dev, callbacks=[checkpoint])
 
         df = pd.DataFrame(hist.history)
         df.index.name = 'epoch'
         df.to_csv(f'{args.out_dir}/{args.model_name}_training_log.csv')
+    else:
+        print(f'ERROR: Number of classes {y.shape[-1]} is not equal to 2 or 4, see README for more info on using this training script.')
+        
