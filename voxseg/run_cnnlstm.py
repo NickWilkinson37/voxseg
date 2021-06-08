@@ -39,12 +39,20 @@ def decode(targets: pd.DataFrame, speech_thresh: float = 0.5, speech_w_music_thr
     '''
 
     targets = targets.copy()
-    prior = np.array([(1-speech_thresh) * speech_w_music_thresh,
-                    speech_thresh * speech_w_music_thresh,
-                    (1-speech_thresh) * (1-speech_w_music_thresh),
-                    (1-speech_thresh) * speech_w_music_thresh])
-    temp = pd.concat([_targets_to_endpoints(medfilt([0 if (j*prior).argmax() == 1 else 1 for j in i], filt), 0.32) \
-                     for i in targets['predicted-targets']], ignore_index=True)
+    if targets['predicted-targets'].iloc[0].shape[-1] == 4:
+        prior = np.array([(1-speech_thresh) * speech_w_music_thresh,
+                        speech_thresh * speech_w_music_thresh,
+                        (1-speech_thresh) * (1-speech_w_music_thresh),
+                        (1-speech_thresh) * speech_w_music_thresh])
+        temp = pd.concat([_targets_to_endpoints(medfilt([0 if (j*prior).argmax() == 1 else 1 for j in i], filt), 0.32) \
+                        for i in targets['predicted-targets']], ignore_index=True)
+    elif targets['predicted-targets'].iloc[0].shape[-1] == 2:
+        prior = np.array([speech_thresh,
+                        1-speech_thresh])
+        temp = pd.concat([_targets_to_endpoints(medfilt([0 if (j*prior).argmax() == 0 else 1 for j in i], filt), 0.32) \
+                        for i in targets['predicted-targets']], ignore_index=True)
+    else:
+        print(f'ERROR: model provided has {targets["predicted-targets"].iloc[0].shape[-1]} outputs. Model expected to have 2 or 4 outputs.')
     if 'start' in targets.columns:
         targets['end'] = targets['start'] + temp['end']
         targets['start'] = targets['start'] + temp['start']

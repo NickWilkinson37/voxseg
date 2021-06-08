@@ -110,5 +110,63 @@ predicted_labels = run_cnnlstm.predict_labels(model, normalized_feats) # runs th
 utils.save(predicted_labels, 'path/for/output/labels.h5') # saves predicted labels to .h5 file
 ```
 
+## Training
+
+A basic training script is provided in the file `train.py` in the root directory of the project. 
+
+To use this script the following files are required in a Kaldi style data directory:
+
+1. `wav.scp` - this file provides the paths to the audio files one wishes to use for training, and assigns them a unique recording-id. It is structured as follows:
+    `<recording-id> <extended-filename>`. Each entry should appear on a new line, for example:
+    ```
+    rec_000 wavs/some_raw_audio.wav
+    rec_001 wavs/some_more_raw_audio.wav
+    ```
+    Note that the `<extended-filename>` may be an absolute path or relative path, except when using Docker or Singularity, where paths relative to the mount point must be used.
+
+2. `segments` - this file specifies the start and end points of each labelled segment within the audio file. Note, this is different to the way this file is used when provided for decoding. This file is structured as follows:
+    `<utterance-id> <recording-id> <segment-begin> <segment-end>`, where `<segment-begin>` and `<segment-end>` are in seconds. Each entry should appear on a new line, for example:
+    ```
+    rec_000_00 rec_000 0.0 4.3
+    rec_000_01 rec_000 4.3 7.2
+    rec_000_02 rec_000 7.2 14.8
+    rec_000_03 rec_000 14.8 19.5
+    rec_001_00 rec_001 0.0 8.5
+    rec_001_01 rec_001 8.5 12.2
+    rec_001_02 rec_001 12.2 16.1
+    rec_001_03 rec_001 16.1 18.9
+    rec_001_04 rec_001 18.9 22.0
+    ```
+
+3. `utt2spk` - this file specifies the label attached to each segment defined within the `segments` file. This file is structured as follows:
+    `<utterance-id> <label>`. Each entry should appear on a new line, for example:
+    ```
+    rec_000_00 speech
+    rec_000_01 non_speech
+    rec_000_02 speech
+    rec_000_03 non_speech
+    rec_001_00 non_speech
+    rec_001_01 speech
+    rec_001_02 non_speech
+    rec_001_03 speech
+    rec_001_04 non_speech
+    ```
+
+Note, that the model may be trained with 2 classes `('speech', 'non_speech')` as shown in the above example, or with the 4 classes from AVA-Speech dataset `('clean_speech', 'no_speech', 'speech_with_music', 'speech_with_noise')`, as is the case for the default model used by the toolkit.
+
+To use the training script with a specific validation set run:
+```bash
+# use -v to specify a Kaldi style data directory to be used as validation set
+python3 train.py -v val_dir train_dir model_name out_dir
+```
+
+To use the training script with a percetage of the training data as a validation set run:
+```bash
+# use -s to specify a percetage of the training data to be used as a validation set
+python3 train.py -s 0.1 train_dir model_name out_dir
+```
+
+The training script may also be used without any flags, however this is not recommended, as it makes it difficult to tell whether the model is starting to overfit. When a validation set is provided the model with the best validation accuracy is saved. When no validation set is provided the model is saved after the final training epoch.
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
