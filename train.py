@@ -98,9 +98,9 @@ if __name__ == '__main__':
         X_dev = None
         y_dev = None
 
-    model_name = args.model_name
-    checkpoint = ModelCheckpoint(filepath=f'{args.out_dir}/{model_name}.h5',
-                                save_weights_only=False, monitor='val_accuracy', mode='max', save_best_only=True)
+    args.model_name
+    checkpoint = ModelCheckpoint(filepath=f'{args.out_dir}/{args.model_name}.h5',
+                                 save_weights_only=False, monitor='val_accuracy', mode='max', save_best_only=True)
 
     if y.shape[-1] != 2 or y.shape[-1] != 4:
         print(f'ERROR: Number of classes {y.shape[-1]} is not equal to 2 or 4, see README for more info on using this training script.')
@@ -109,4 +109,4 @@ if __name__ == '__main__':
 
         df = pd.DataFrame(hist.history)
         df.index.name = 'epoch'
-        df.to_csv(f'{args.out_dir}/{model_name}_training_log.csv')
+        df.to_csv(f'{args.out_dir}/{args.model_name}_training_log.csv')
