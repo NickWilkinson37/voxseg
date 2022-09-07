@@ -8,7 +8,7 @@ import pandas as pd
 import tensorflow as tf
 from typing import Tuple
 from tensorflow.keras import models
-from voxseg import utils
+from voxseg.voxseg import utils
 from scipy.signal import medfilt
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -61,6 +61,10 @@ def decode(targets: pd.DataFrame, speech_thresh: float = 0.5, speech_w_music_thr
         targets['end'] = temp['end']
     targets = targets.drop(['predicted-targets'], axis=1)
     targets = targets.apply(pd.Series.explode).reset_index(drop=True)
+    # Fix nan
+    targets['start'] = targets['start'].fillna(0)
+    targets['end'] = targets['end'].fillna(0)
+
     targets['utterance-id'] = targets['recording-id'].astype(str) + '_' + \
                         ((targets['start'] * 100).astype(int)).astype(str).str.zfill(7) + '_' + \
                         ((targets['end'] * 100).astype(int)).astype(str).str.zfill(7)

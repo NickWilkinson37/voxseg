@@ -1,7 +1,7 @@
 import argparse
 import os
 import tensorflow as tf
-from voxseg import extract_feats, run_cnnlstm, utils, evaluate
+from voxseg.voxseg import extract_feats, run_cnnlstm, utils, evaluate
 from tensorflow.keras import models
 
 gpus = tf.config.experimental.list_physical_devices('GPU')

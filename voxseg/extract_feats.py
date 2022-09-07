@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import os
-from voxseg import utils
+from voxseg.voxseg import utils
 from python_speech_features import logfbank
 
 

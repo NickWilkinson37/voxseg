@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from scipy.io import wavfile
 from typing import Dict
-from voxseg import utils
+from voxseg.voxseg import utils
 
 
 def print_confusion_matrix(scores: Dict[str,Dict[str,int]]) -> None:
